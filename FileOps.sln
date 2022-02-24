@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.810.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOps", "src\FileOps\FileOps.csproj", "{2032C541-8C17-4DFD-882F-909E6BC6B8FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOps.DependencyInjection", "src\FileOps.DependencyInjection\FileOps.DependencyInjection.csproj", "{F0A98744-920B-41D6-AAE4-B2E8BED41CBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2032C541-8C17-4DFD-882F-909E6BC6B8FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2032C541-8C17-4DFD-882F-909E6BC6B8FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2032C541-8C17-4DFD-882F-909E6BC6B8FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0A98744-920B-41D6-AAE4-B2E8BED41CBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0A98744-920B-41D6-AAE4-B2E8BED41CBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0A98744-920B-41D6-AAE4-B2E8BED41CBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0A98744-920B-41D6-AAE4-B2E8BED41CBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
