@@ -5,7 +5,7 @@ using FileOps.Backup;
 
 namespace FileOps.Operations;
 
-public sealed class DeleteFileOperation : IFileStoreTransaction, IDisposable
+public sealed class DeleteFileOperation : IFileOpsTransaction, IDisposable
 {
     private readonly string _tempPath;
     private readonly string _fullPath;

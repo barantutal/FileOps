@@ -1,6 +1,6 @@
 namespace FileOps;
 
-public interface IFileStoreTransaction
+public interface IFileOpsTransaction
 {
     void Commit();
     void RollBack();

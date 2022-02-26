@@ -4,7 +4,6 @@ namespace FileOps;
 
 public interface IFileInfo
 {
-    Guid Id { get; }
     string Name { get; }
     string Path { get; }
     DateTime ModifiedDate { get; }

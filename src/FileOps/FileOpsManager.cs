@@ -8,55 +8,45 @@ namespace FileOps;
 public class FileOpsManager : IFileOpsManager
 {
     private readonly string _tempPath;
-    private readonly string _rootPath;
-    protected StoreEnlistment? _storeEnlistment;
-    protected Action? OnTransactionPreparing;
-    protected Action? OnRollback;
+    protected FileOpsEnlistment? _fileOpsEnlistment;
+    protected Action OnTransactionPreparing;
+    protected Action OnRollback;
     
-    public FileOpsManager(FileOpsOptions options)
+    public FileOpsManager()
     {
-        _rootPath =  options.RootPath ?? "/";
-        _tempPath = Path.Combine(Path.GetTempPath(), "StoreManager-tempf");
-        Directory.CreateDirectory(_rootPath);
+        _tempPath = Path.Combine(Path.GetTempPath(), "FileOpsManager-tempf");
         Directory.CreateDirectory(_tempPath);
     }
     
     public virtual void GenerateDirectory(string path)
     {
-        EnlistTransaction(new GenerateDirectoryOperation(GetFullPath(path)));
+        EnlistTransaction(new GenerateDirectoryOperation(path));
     }
     
     public virtual void MoveDirectory(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new MoveDirectoryOperation(GetFullPath(sourcePath), GetFullPath(destinationPath), _tempPath));
+        EnlistTransaction(new MoveDirectoryOperation(sourcePath, destinationPath, _tempPath));
     }
     
     public virtual IFileInfo GenerateFile(string path, byte[] content)
     {
-        var fullPath = GetFullPath(path);
-        EnlistTransaction(new GenerateFileOperation(fullPath, content, _tempPath));
+        EnlistTransaction(new GenerateFileOperation(path, content, _tempPath));
 
-        var fileInfo = new System.IO.FileInfo(fullPath);
+        var fileInfo = new System.IO.FileInfo(path);
         return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
     }
     
     public virtual IFileInfo CopyFile(string path, string pathToCopy)
     {
-        var newFullPath = GetFullPath(pathToCopy);
-        EnlistTransaction(new CopyFileOperation(GetFullPath(path), newFullPath, _tempPath));
+        EnlistTransaction(new CopyFileOperation(path, pathToCopy, _tempPath));
         
-        var fileInfo = new System.IO.FileInfo(newFullPath);
+        var fileInfo = new System.IO.FileInfo(pathToCopy);
         return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
     }
-
-    public virtual IFileInfo CopyFile(Guid id, string pathToCopy)
-    {
-        return null;
-    }
-
+    
     public virtual void DeleteFile(string path)
     {
-        EnlistTransaction(new DeleteFileOperation(GetFullPath(path), _tempPath));
+        EnlistTransaction(new DeleteFileOperation(path, _tempPath));
     }
     
     public virtual bool IsTransactionOpen()
@@ -64,33 +54,22 @@ public class FileOpsManager : IFileOpsManager
         return Transaction.Current != null;
     }
 
-    public virtual string GetFullPath(string path)
-    {
-        if (path.StartsWith("/"))
-        {
-            path = path.Substring(1, path.Length - 1);
-        }
-        
-        return Path.Combine(_rootPath, path);
-    }
-
-    public void EnlistTransaction(IFileStoreTransaction transaction)
+    public void EnlistTransaction(IFileOpsTransaction transaction)
     {
         if (IsTransactionOpen())
         {
-            if (_storeEnlistment == null)
+            _fileOpsEnlistment ??= new FileOpsEnlistment
             {
-                _storeEnlistment = new StoreEnlistment
-                {
-                    TransactionPreparingAction = Prepare,
-                    RollbackAction = Rollback,
-                };
-            }
+                TransactionPreparingAction = Prepare,
+                RollbackAction = Rollback,
+            };
 
-            _storeEnlistment.Add(transaction);
+            _fileOpsEnlistment.Add(transaction);
         }
-        
-        transaction.Commit();
+        else
+        {
+            transaction.Commit();
+        }
     }
     
     private void Prepare()

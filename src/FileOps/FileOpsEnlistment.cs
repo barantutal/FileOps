@@ -4,22 +4,22 @@ using System.Transactions;
 
 namespace FileOps;
 
-public class StoreEnlistment : IEnlistmentNotification
+public class FileOpsEnlistment : IEnlistmentNotification
 {
-    private readonly Stack<IFileStoreTransaction> _transactions;
+    private readonly Stack<IFileOpsTransaction> _transactions;
     public Action? TransactionPreparingAction;
     public Action? RollbackAction;
 
-    public StoreEnlistment()
+    public FileOpsEnlistment()
     {
         Transaction.Current?.EnlistVolatile(this, EnlistmentOptions.None);
-        _transactions = new Stack<IFileStoreTransaction>();
+        _transactions = new Stack<IFileOpsTransaction>();
     }
 
-    public void Add(IFileStoreTransaction storeTransaction)
+    public void Add(IFileOpsTransaction fileOpsTransaction)
     {
-        _transactions.Push(storeTransaction);
-        storeTransaction.Commit();
+        _transactions.Push(fileOpsTransaction);
+        fileOpsTransaction.Commit();
     }
 
     public void Commit(Enlistment enlistment)
@@ -68,7 +68,7 @@ public class StoreEnlistment : IEnlistmentNotification
         }
     }
     
-    private void DisposeTransaction(IFileStoreTransaction transaction)
+    private void DisposeTransaction(IFileOpsTransaction transaction)
     {
         if (transaction is IDisposable disposable)
         {

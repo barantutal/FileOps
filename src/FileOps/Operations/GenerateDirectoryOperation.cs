@@ -2,7 +2,7 @@ using System.IO;
 
 namespace FileOps.Operations;
 
-public class GenerateDirectoryOperation : IFileStoreTransaction
+public class GenerateDirectoryOperation : IFileOpsTransaction
 {
     private readonly string _fullPath;
     private bool _isDirectoryExists;
