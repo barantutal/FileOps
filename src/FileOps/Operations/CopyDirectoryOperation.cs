@@ -42,6 +42,7 @@ public class CopyDirectoryOperation : IFileOpsTransaction, IDisposable
     {
         if (_destinationBackupPath != null)
         {
+            Directory.Delete(_destinationPath, true);
             Directory.Move(_destinationBackupPath, _destinationPath);
         }
     }
