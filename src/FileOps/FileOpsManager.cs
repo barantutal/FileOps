@@ -30,7 +30,12 @@ public class FileOpsManager : IFileOpsManager
 
     public void CopyDirectory(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new CopyDirectoryOperation(sourcePath, destinationPath, _tempPath));
+        EnlistTransaction(new CopyDirectoryOperation(sourcePath, destinationPath));
+    }
+
+    public void DeleteDirectory(string path)
+    {
+        EnlistTransaction(new DeleteDirectoryOperation(path, _tempPath));
     }
 
     public virtual IFileInfo GenerateFile(string path, byte[] content)
@@ -43,7 +48,7 @@ public class FileOpsManager : IFileOpsManager
     
     public virtual IFileInfo CopyFile(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new CopyFileOperation(sourcePath, destinationPath, _tempPath));
+        EnlistTransaction(new CopyFileOperation(sourcePath, destinationPath));
         
         var fileInfo = new System.IO.FileInfo(destinationPath);
         return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
