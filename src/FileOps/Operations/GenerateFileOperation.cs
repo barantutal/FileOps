@@ -8,28 +8,28 @@ namespace FileOps.Operations;
 public sealed class GenerateFileOperation : IFileOpsTransaction, IDisposable
 {
     private readonly string _tempPath;
-    private readonly string _fullPath;
+    private readonly string _path;
     private readonly byte[] _fileContent;
     private string _backupPath;
     private bool _disposed;
 
-    public GenerateFileOperation(string fullPath, byte[] fileContent, string tempPath)
+    public GenerateFileOperation(string path, byte[] fileContent, string tempPath)
     {
-        _fullPath = fullPath;
+        _path = path;
         _fileContent = fileContent;
         _tempPath = tempPath;
     }
     
     public void Commit()
     {
-        if (File.Exists(_fullPath))
+        if (File.Exists(_path))
         {
-            var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_fullPath));
-            File.Move(_fullPath, backupPath);
+            var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_path));
+            File.Move(_path, backupPath);
             _backupPath = backupPath;
         }
 
-        File.WriteAllBytes(_fullPath, _fileContent);
+        File.WriteAllBytes(_path, _fileContent);
         Array.Clear(_fileContent, 0, _fileContent.Length);
     }
 
@@ -37,8 +37,8 @@ public sealed class GenerateFileOperation : IFileOpsTransaction, IDisposable
     {
         if (_backupPath == null) return;
         
-        File.Delete(_fullPath);
-        File.Move(_backupPath, _fullPath);
+        File.Delete(_path);
+        File.Move(_backupPath, _path);
     }
     
     ~GenerateFileOperation()

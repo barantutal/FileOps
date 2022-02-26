@@ -4,22 +4,22 @@ namespace FileOps.Operations;
 
 public class GenerateDirectoryOperation : IFileOpsTransaction
 {
-    private readonly string _fullPath;
+    private readonly string _path;
     private bool _directoryGenerated;
     
-    public GenerateDirectoryOperation(string fullPath)
+    public GenerateDirectoryOperation(string path)
     {
-        _fullPath = fullPath;
+        _path = path;
     }
     
     public void Commit()
     {
-        if (Directory.Exists(_fullPath))
+        if (Directory.Exists(_path))
         {
             return;
         }
         
-        Directory.CreateDirectory(_fullPath);
+        Directory.CreateDirectory(_path);
         _directoryGenerated = true;
     }
 
@@ -27,7 +27,7 @@ public class GenerateDirectoryOperation : IFileOpsTransaction
     {
         if (_directoryGenerated)
         {
-            Directory.Delete(_fullPath);
+            Directory.Delete(_path);
         }
     }
 }

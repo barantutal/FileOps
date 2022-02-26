@@ -27,7 +27,12 @@ public class FileOpsManager : IFileOpsManager
     {
         EnlistTransaction(new MoveDirectoryOperation(sourcePath, destinationPath, _tempPath));
     }
-    
+
+    public void CopyDirectory(string sourcePath, string destinationPath)
+    {
+        EnlistTransaction(new CopyDirectoryOperation(sourcePath, destinationPath, _tempPath));
+    }
+
     public virtual IFileInfo GenerateFile(string path, byte[] content)
     {
         EnlistTransaction(new GenerateFileOperation(path, content, _tempPath));
@@ -36,11 +41,11 @@ public class FileOpsManager : IFileOpsManager
         return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
     }
     
-    public virtual IFileInfo CopyFile(string path, string pathToCopy)
+    public virtual IFileInfo CopyFile(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new CopyFileOperation(path, pathToCopy, _tempPath));
+        EnlistTransaction(new CopyFileOperation(sourcePath, destinationPath, _tempPath));
         
-        var fileInfo = new System.IO.FileInfo(pathToCopy);
+        var fileInfo = new System.IO.FileInfo(destinationPath);
         return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
     }
     
@@ -60,8 +65,8 @@ public class FileOpsManager : IFileOpsManager
         {
             _fileOpsEnlistment ??= new FileOpsEnlistment
             {
-                TransactionPreparingAction = Prepare,
-                RollbackAction = Rollback,
+                OnTransactionPreparing = Prepare,
+                OnRollback = Rollback,
             };
 
             _fileOpsEnlistment.Add(transaction);

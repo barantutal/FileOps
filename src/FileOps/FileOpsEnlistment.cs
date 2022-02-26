@@ -7,8 +7,8 @@ namespace FileOps;
 public class FileOpsEnlistment : IEnlistmentNotification
 {
     private readonly Stack<IFileOpsTransaction> _transactions;
-    public Action? TransactionPreparingAction;
-    public Action? RollbackAction;
+    public Action OnTransactionPreparing;
+    public Action OnRollback;
 
     public FileOpsEnlistment()
     {
@@ -34,7 +34,7 @@ public class FileOpsEnlistment : IEnlistmentNotification
 
     public void Prepare(PreparingEnlistment preparingEnlistment)
     {
-        TransactionPreparingAction?.Invoke();
+        OnTransactionPreparing?.Invoke();
         preparingEnlistment.Prepared();
         DisposeTransactions();
     }
@@ -43,7 +43,7 @@ public class FileOpsEnlistment : IEnlistmentNotification
     {
         try
         {
-            RollbackAction?.Invoke();
+            OnRollback?.Invoke();
             while (_transactions.Count > 0)
             {
                 var transaction = _transactions.Pop();
