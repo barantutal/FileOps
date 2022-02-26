@@ -1,70 +1,36 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using FileOps.Backup;
+using FileOps.Exceptions;
 
 namespace FileOps.Operations;
 
-public sealed class CopyFileOperation : IFileOpsTransaction, IDisposable
+public sealed class CopyFileOperation : IFileOpsTransaction
 {
-    private readonly string _tempPath;
     private readonly string _sourcePath;
     private readonly string _destinationPath;
-    private string _destinationBackupPath;
-    private bool _disposed;
 
-    public CopyFileOperation(string sourcePath, string destinationPath, string tempPath) 
+    public CopyFileOperation(string sourcePath, string destinationPath) 
     {
         _sourcePath = sourcePath;
         _destinationPath = destinationPath;
-        _tempPath = tempPath;
     }
     
     public void Commit()
     {
-        if (File.Exists(_destinationPath))
+        if (!File.Exists(_sourcePath))
         {
-            var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_destinationPath));
-            File.Move(_destinationPath, backupPath);
-            _destinationBackupPath = backupPath;
+            throw FileOperationException.MissingSourcePathException(_sourcePath);
         }
         
+        if (File.Exists(_destinationPath))
+        {
+            throw FileOperationException.DestinationPathExistsException(_destinationPath);
+        }
+
         File.Copy(_sourcePath, _destinationPath);
     }
 
     public void RollBack()
     {
-        if (_destinationBackupPath != null)
-        {
-            File.Delete(_destinationPath);
-            File.Copy(_destinationBackupPath, _destinationPath);
-        }
-    }
-    
-    ~CopyFileOperation()
-    {
-        ClearBackups();
-    }
-
-    public void Dispose()
-    {
-        ClearBackups();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ClearBackups()
-    {
-        if (!_disposed)
-        {
-            _disposed = true;
-            
-            var backupFolders = new List<string>();
-            if (_destinationBackupPath != null)
-            {
-                backupFolders.Add(_destinationBackupPath);
-            }
-            
-            ClearBackupHelper.Execute(backupFolders);
-        }
+        File.Delete(_destinationPath);
     }
 }
