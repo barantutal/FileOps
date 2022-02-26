@@ -35,7 +35,7 @@ public class FileOpsManager : IFileOpsManager
 
     public virtual IFileInfo GenerateFile(string path, byte[] content)
     {
-        EnlistTransaction(new GenerateFileOperation(path, content, _tempPath));
+        EnlistTransaction(new GenerateFileOperation(path, content));
 
         var fileInfo = new System.IO.FileInfo(path);
         return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);

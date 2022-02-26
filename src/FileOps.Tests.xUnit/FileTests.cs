@@ -25,15 +25,34 @@ public class FileTests : IClassFixture<FileOpsManager>
     [Fact]
     public void GeneratesFile()
     {
-        var transactionScope = new TransactionScope();
-
         var path = GenerateFilePath();
+        Assert.True(!File.Exists(path));
+        
+        var transactionScope = new TransactionScope();
         var content = GenerateContent();
         _fileOpsManager.GenerateFile(path, content);
         transactionScope.Complete();
         transactionScope.Dispose();
         
         Assert.True(File.Exists(path));
+    }
+    
+    [Fact]
+    public void DeletesFile()
+    {
+        var path = GenerateFilePath();
+        var content = GenerateContent();
+
+        Assert.True(!File.Exists(path));
+        
+        var transactionScope = new TransactionScope();
+        _fileOpsManager.GenerateFile(path, content);
+        Assert.True(File.Exists(path));
+        _fileOpsManager.DeleteFile(path);
+        transactionScope.Complete();
+        transactionScope.Dispose();
+        
+        Assert.True(!File.Exists(path));
     }
 
     private string GenerateFilePath()
