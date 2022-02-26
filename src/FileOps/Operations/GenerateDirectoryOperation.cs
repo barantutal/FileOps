@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using FileOps.Backup;
-using FileOps.Helpers;
 
 namespace FileOps.Operations;
 
-public class GenerateDirectoryOperation : IFileOpsTransaction, IDisposable
+public class GenerateDirectoryOperation : IFileOpsTransaction
 {
     private readonly string _fullPath;
     private bool _directoryGenerated;
