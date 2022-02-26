@@ -10,7 +10,7 @@ public void ConfigureServices(IServiceCollection services)
 {
     //......
 
-    builder.Services.AddFileOps();
+    services.AddFileOps();
 }
 ```
 
