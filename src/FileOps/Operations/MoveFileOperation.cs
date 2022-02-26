@@ -10,6 +10,7 @@ public class MoveFileOperation : IFileOpsTransaction
     private readonly string _destinationPath;
     private readonly string _tempPath;
     private string _backupPath;
+    private string _directoryPath;
     
     public MoveFileOperation(string sourcePath, string destinationPath, string tempPath) 
     {
@@ -30,6 +31,13 @@ public class MoveFileOperation : IFileOpsTransaction
             throw FileOperationException.DestinationPathExistsException(_destinationPath);
         }
         
+        var directoryPath = Path.GetDirectoryName(_destinationPath);
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+            _directoryPath = directoryPath;
+        }
+        
         var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_sourcePath));
         File.Copy(_sourcePath, backupPath);
         _backupPath = backupPath;
@@ -42,6 +50,11 @@ public class MoveFileOperation : IFileOpsTransaction
         if (!File.Exists(_sourcePath) && _backupPath != null)
         {
             File.Move(_backupPath, _sourcePath);
+        }
+        
+        if (_directoryPath != null)
+        {
+            Directory.Delete(_directoryPath);
         }
     }
 }
