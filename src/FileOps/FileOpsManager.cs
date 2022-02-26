@@ -53,7 +53,15 @@ public class FileOpsManager : IFileOpsManager
         var fileInfo = new System.IO.FileInfo(destinationPath);
         return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
     }
-    
+
+    public IFileInfo MoveFile(string sourcePath, string destinationPath)
+    {
+        EnlistTransaction(new MoveFileOperation(sourcePath, destinationPath, _tempPath));
+        
+        var fileInfo = new System.IO.FileInfo(destinationPath);
+        return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
+    }
+
     public virtual void DeleteFile(string path)
     {
         EnlistTransaction(new DeleteFileOperation(path, _tempPath));

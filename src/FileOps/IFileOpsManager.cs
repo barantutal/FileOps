@@ -10,5 +10,6 @@ public interface IFileOpsManager
     public void DeleteDirectory(string path);
     public IFileInfo GenerateFile(string path, byte[] content);
     public IFileInfo CopyFile(string sourcePath, string destinationPath);
+    public IFileInfo MoveFile(string sourcePath, string destinationPath);
     public void DeleteFile(string path);
 }
