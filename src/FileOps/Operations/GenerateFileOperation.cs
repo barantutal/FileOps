@@ -10,7 +10,7 @@ public sealed class GenerateFileOperation : IFileOpsTransaction, IDisposable
     private readonly string _tempPath;
     private readonly string _fullPath;
     private readonly byte[] _fileContent;
-    private string? _backupPath;
+    private string _backupPath;
     private bool _disposed;
 
     public GenerateFileOperation(string fullPath, byte[] fileContent, string tempPath)
@@ -24,8 +24,9 @@ public sealed class GenerateFileOperation : IFileOpsTransaction, IDisposable
     {
         if (File.Exists(_fullPath))
         {
-            _backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_fullPath));
-            File.Copy(_fullPath, _backupPath);
+            var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_fullPath));
+            File.Move(_fullPath, backupPath);
+            _backupPath = backupPath;
         }
 
         File.WriteAllBytes(_fullPath, _fileContent);
@@ -34,12 +35,10 @@ public sealed class GenerateFileOperation : IFileOpsTransaction, IDisposable
 
     public void RollBack()
     {
+        if (_backupPath == null) return;
+        
         File.Delete(_fullPath);
-
-        if (_backupPath != null)
-        {
-            File.Move(_backupPath, _fullPath);
-        }
+        File.Move(_backupPath, _fullPath);
     }
     
     ~GenerateFileOperation()
@@ -55,17 +54,16 @@ public sealed class GenerateFileOperation : IFileOpsTransaction, IDisposable
 
     private void ClearBackups()
     {
-        if (!_disposed)
+        if (_disposed) return;
+        
+        _disposed = true;
+            
+        var backupFolders = new List<string>();
+        if (_backupPath != null)
         {
-            _disposed = true;
-            
-            var backupFolders = new List<string>();
-            if (_backupPath != null)
-            {
-                backupFolders.Add(_backupPath);
-            }
-            
-            ClearBackupHelper.Execute(backupFolders);
+            backupFolders.Add(_backupPath);
         }
+            
+        ClearBackupHelper.Execute(backupFolders);
     }
 }

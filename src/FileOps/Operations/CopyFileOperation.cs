@@ -8,37 +8,46 @@ namespace FileOps.Operations;
 public sealed class CopyFileOperation : IFileOpsTransaction, IDisposable
 {
     private readonly string _tempPath;
-    private readonly string _fullPath;
-    private readonly string _pathToCopy;
-    private string? _backupPath;
+    private readonly string _sourcePath;
+    private readonly string _destinationPath;
+    private string _destinationBackupPath;
+    private string _sourceBackupPath;
     private bool _disposed;
 
-    public CopyFileOperation(string fullPath, string pathToCopy, string tempPath) 
+    public CopyFileOperation(string sourcePath, string destinationPath, string tempPath) 
     {
-        _fullPath = fullPath;
-        _pathToCopy = pathToCopy;
+        _sourcePath = sourcePath;
+        _destinationPath = destinationPath;
         _tempPath = tempPath;
     }
     
     public void Commit()
     {
-        if (File.Exists(_pathToCopy))
+        if (File.Exists(_destinationPath))
         {
-            _backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_pathToCopy));
-            File.Copy(_pathToCopy, _backupPath);
-            File.Delete(_pathToCopy);
+            var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_destinationPath));
+            File.Move(_destinationPath, backupPath);
+            _destinationBackupPath = backupPath;
         }
         
-        File.Copy(_fullPath, _pathToCopy);
+        var sourceBackupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_sourcePath));
+        File.Copy(_sourcePath, sourceBackupPath);
+        _sourceBackupPath = sourceBackupPath;
+        File.Copy(_sourcePath, _destinationPath);
     }
 
     public void RollBack()
     {
-        File.Delete(_pathToCopy);
-
-        if (_backupPath != null)
+        if (_destinationBackupPath != null)
         {
-            File.Copy(_backupPath, _pathToCopy);
+            File.Delete(_destinationPath);
+            File.Copy(_destinationBackupPath, _destinationPath);
+        }
+        
+        if (_sourceBackupPath != null)
+        {
+            File.Delete(_sourcePath);
+            File.Copy(_sourceBackupPath, _sourcePath);
         }
     }
     
@@ -60,9 +69,9 @@ public sealed class CopyFileOperation : IFileOpsTransaction, IDisposable
             _disposed = true;
             
             var backupFolders = new List<string>();
-            if (_backupPath != null)
+            if (_destinationBackupPath != null)
             {
-                backupFolders.Add(_backupPath);
+                backupFolders.Add(_destinationBackupPath);
             }
             
             ClearBackupHelper.Execute(backupFolders);

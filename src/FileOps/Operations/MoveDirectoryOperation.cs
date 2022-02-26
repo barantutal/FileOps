@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using FileOps.Backup;
+using FileOps.Helpers;
 
 namespace FileOps.Operations;
 
@@ -13,7 +14,8 @@ public sealed class MoveDirectoryOperation : IFileOpsTransaction, IDisposable
     private string _sourceBackupPath;
     private string? _destinationBackupPath;
     private bool _disposed;
-
+    private bool _cancelled;
+    
     public MoveDirectoryOperation(string sourceFullPath, string destinationFullPath, string tempPath)
     {
         _sourceFullPath = sourceFullPath;
@@ -23,41 +25,45 @@ public sealed class MoveDirectoryOperation : IFileOpsTransaction, IDisposable
     
     public void Commit()
     {
-        if (Directory.Exists(_destinationFullPath))
+        if (!Directory.Exists(_sourceFullPath))
         {
-            _destinationBackupPath = Path.Combine(_tempPath, Guid.NewGuid().ToString());
-            Directory.Move(_destinationFullPath, _destinationBackupPath);
+            _cancelled = true;
+            return;
         }
         
-        _sourceBackupPath = Path.Combine(_tempPath, Guid.NewGuid().ToString());
+        if (_sourceFullPath.StartsWith(_destinationFullPath) || _destinationFullPath.StartsWith(_sourceFullPath))
+        {
+            _cancelled = true;
+            return;
+        }
+        
+        if (Directory.Exists(_destinationFullPath))
+        {
+            var destinationBackupPath = Path.Combine(_tempPath, Guid.NewGuid().ToString());
+            Directory.Move(_destinationFullPath, destinationBackupPath);
+            _destinationBackupPath = destinationBackupPath;
+        }
+        
+        var sourceBackupFile = Path.Combine(_tempPath, Guid.NewGuid().ToString());
         Directory.CreateDirectory(_sourceBackupPath);
-        BackupSourceDirectory();
+        DirectoryHelper.CopyDirectory(_sourceFullPath, _sourceBackupPath);
+        _sourceBackupPath = sourceBackupFile;
         Directory.Move(_sourceFullPath, _destinationFullPath);
     }
 
     public void RollBack()
     {
-        if(Directory.Exists(_sourceFullPath))  Directory.Delete(_sourceFullPath, true);
-        if(Directory.Exists(_destinationFullPath))  Directory.Delete(_destinationFullPath, true);
+        if (_cancelled) return;
         
-        Directory.Move(_sourceBackupPath, _sourceFullPath);
+        if (_sourceBackupPath != null && !Directory.Exists(_sourceFullPath))
+        {
+            Directory.Move(_sourceBackupPath, _sourceFullPath);
+        }
 
         if (_destinationBackupPath != null)
         {
+            Directory.Delete(_destinationFullPath, true);
             Directory.Move(_destinationBackupPath, _destinationFullPath);
-        }
-    }
-    
-    private void BackupSourceDirectory()
-    {
-        foreach (string dirPath in Directory.GetDirectories(_sourceFullPath, "*", SearchOption.AllDirectories))
-        {
-            Directory.CreateDirectory(dirPath.Replace(_sourceFullPath, _sourceBackupPath));
-        }
-
-        foreach (string newPath in Directory.GetFiles(_sourceFullPath, "*.*",SearchOption.AllDirectories))
-        {
-            File.Copy(newPath, newPath.Replace(_sourceFullPath, _sourceBackupPath), true);
         }
     }
 
@@ -74,17 +80,16 @@ public sealed class MoveDirectoryOperation : IFileOpsTransaction, IDisposable
 
     private void ClearBackups()
     {
-        if (!_disposed)
+        if (_disposed) return;
+        
+        _disposed = true;
+            
+        var backupFolders = new List<string>() { _sourceBackupPath };
+        if (_destinationBackupPath != null)
         {
-            _disposed = true;
-            
-            var backupFolders = new List<string>() { _sourceBackupPath };
-            if (_destinationBackupPath != null)
-            {
-                backupFolders.Add(_destinationBackupPath);
-            }
-            
-            ClearBackupHelper.Execute(backupFolders);
+            backupFolders.Add(_destinationBackupPath);
         }
+            
+        ClearBackupHelper.Execute(backupFolders);
     }
 }

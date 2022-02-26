@@ -8,31 +8,30 @@ namespace FileOps.Operations;
 public sealed class DeleteFileOperation : IFileOpsTransaction, IDisposable
 {
     private readonly string _tempPath;
-    private readonly string _fullPath;
+    private readonly string _sourcePath;
     private string? _backupPath;
     private bool _disposed;
     
-    public DeleteFileOperation(string fullPath, string tempPath)
+    public DeleteFileOperation(string sourcePath, string tempPath)
     {
-        _fullPath = fullPath;
+        _sourcePath = sourcePath;
         _tempPath = tempPath;
     }
     
     public void Commit()
     {
-        if (File.Exists(_fullPath))
-        {
-            _backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_fullPath));
-            File.Copy(_fullPath, _backupPath);
-            File.Delete(_fullPath);
-        }
+        if (!File.Exists(_sourcePath)) return;
+        
+        _backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_sourcePath));
+        File.Copy(_sourcePath, _backupPath);
+        File.Delete(_sourcePath);
     }
 
     public void RollBack()
     {
         if (_backupPath != null)
         {
-            File.Copy(_backupPath, _fullPath);
+            File.Copy(_backupPath, _sourcePath);
         }
     }
     
