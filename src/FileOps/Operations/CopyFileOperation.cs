@@ -11,7 +11,6 @@ public sealed class CopyFileOperation : IFileOpsTransaction, IDisposable
     private readonly string _sourcePath;
     private readonly string _destinationPath;
     private string _destinationBackupPath;
-    private string _sourceBackupPath;
     private bool _disposed;
 
     public CopyFileOperation(string sourcePath, string destinationPath, string tempPath) 
@@ -30,9 +29,6 @@ public sealed class CopyFileOperation : IFileOpsTransaction, IDisposable
             _destinationBackupPath = backupPath;
         }
         
-        var sourceBackupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_sourcePath));
-        File.Copy(_sourcePath, sourceBackupPath);
-        _sourceBackupPath = sourceBackupPath;
         File.Copy(_sourcePath, _destinationPath);
     }
 
@@ -42,12 +38,6 @@ public sealed class CopyFileOperation : IFileOpsTransaction, IDisposable
         {
             File.Delete(_destinationPath);
             File.Copy(_destinationBackupPath, _destinationPath);
-        }
-        
-        if (_sourceBackupPath != null)
-        {
-            File.Delete(_sourcePath);
-            File.Copy(_sourceBackupPath, _sourcePath);
         }
     }
     
