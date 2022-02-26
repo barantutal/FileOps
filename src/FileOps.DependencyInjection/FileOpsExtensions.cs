@@ -13,10 +13,10 @@ namespace FileOps.DependencyInjection
 
         public static IServiceCollection AddFileOps(this IServiceCollection services, Action<FileOpsOptions>? configure)
         {
-            var fileStoreOptions = new FileOpsOptions("/");
-            configure?.Invoke(fileStoreOptions);
+            var fileOpsOptions = new FileOpsOptions("/");
+            configure?.Invoke(fileOpsOptions);
 
-            services.TryAddTransient<IFileOpsManager>(x => ActivatorUtilities.CreateInstance<FileOpsManager>(x, fileStoreOptions));
+            services.TryAddTransient<IFileOpsManager>(x => ActivatorUtilities.CreateInstance<FileOpsManager>(x, fileOpsOptions));
             return services;
         }
     }
