@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOps.DependencyInjection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebApi", "samples\SampleWebApi\SampleWebApi.csproj", "{808666E8-DAE1-4C6D-84E1-22F4E3B99AB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOps.Tests.xUnit", "src\FileOps.Tests.xUnit\FileOps.Tests.xUnit.csproj", "{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{808666E8-DAE1-4C6D-84E1-22F4E3B99AB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{808666E8-DAE1-4C6D-84E1-22F4E3B99AB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{808666E8-DAE1-4C6D-84E1-22F4E3B99AB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
