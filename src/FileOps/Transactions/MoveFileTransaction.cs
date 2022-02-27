@@ -1,17 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using FileOps.Abstraction;
+using FileOps.Backup;
 using FileOps.Operations;
 
 namespace FileOps.Transactions;
 
-public class MoveFileTransaction : MoveFileOperation, IFileOpsTransaction
+public class MoveFileTransaction : MoveFileOperation, IFileOpsTransaction, IDisposable
 {
     private readonly string _sourcePath;
     private readonly string _destinationPath;
     private readonly string _tempPath;
     private string _backupPath;
     private string _directoryPath;
+    private bool _disposed;
     
     public MoveFileTransaction(string sourcePath, string destinationPath, string tempPath) : base(sourcePath, destinationPath)
     {
@@ -47,6 +50,33 @@ public class MoveFileTransaction : MoveFileOperation, IFileOpsTransaction
         if (_directoryPath != null)
         {
             Directory.Delete(_directoryPath);
+        }
+    }
+    
+    ~MoveFileTransaction()
+    {
+        ClearBackups();
+    }
+
+    public void Dispose()
+    {
+        ClearBackups();
+        GC.SuppressFinalize(this);
+    }
+
+    private void ClearBackups()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+            
+            var backupFolders = new List<string>();
+            if (_backupPath != null)
+            {
+                backupFolders.Add(_backupPath);
+            }
+            
+            ClearBackupHelper.Execute(backupFolders);
         }
     }
 }

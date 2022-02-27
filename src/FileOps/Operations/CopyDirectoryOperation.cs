@@ -27,7 +27,8 @@ public class CopyDirectoryOperation : IFileOps
         {
             throw FileOperationException.DestinationPathExistsException(_destinationPath);
         }
-        
+
+        Directory.CreateDirectory(_destinationPath);
         DirectoryHelper.CopyDirectory(_sourcePath, _destinationPath);
     }
 }

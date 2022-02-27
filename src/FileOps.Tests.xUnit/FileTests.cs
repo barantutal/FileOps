@@ -26,10 +26,11 @@ public class FileTests : IClassFixture<FileOpsManager>
     public void GeneratesFile()
     {
         var path = GenerateFilePath();
+        var content = GenerateContent();
+
         Assert.True(!File.Exists(path));
         
         var transactionScope = new TransactionScope();
-        var content = GenerateContent();
         _fileOpsManager.GenerateFile(path, content);
         transactionScope.Complete();
         transactionScope.Dispose();
@@ -53,6 +54,45 @@ public class FileTests : IClassFixture<FileOpsManager>
         transactionScope.Dispose();
         
         Assert.True(!File.Exists(path));
+    }
+    
+    [Fact]
+    public void MovesFile()
+    {
+        var sourcePath = GenerateFilePath();
+        var destinationPath = GenerateFilePath();
+        var content = GenerateContent();
+
+        Assert.True(!File.Exists(sourcePath));
+        
+        var transactionScope = new TransactionScope();
+        _fileOpsManager.GenerateFile(sourcePath, content);
+        _fileOpsManager.MoveFile(sourcePath, destinationPath);
+        transactionScope.Complete();
+        transactionScope.Dispose();
+
+        Assert.True(!File.Exists(sourcePath));
+        Assert.True(File.Exists(destinationPath));
+    }
+    
+    [Fact]
+    public void CopiesFile()
+    {
+        var sourcePath = GenerateFilePath();
+        var destinationPath = GenerateFilePath();
+        var content = GenerateContent();
+
+        Assert.True(!File.Exists(sourcePath));
+        Assert.True(!File.Exists(destinationPath));
+        
+        var transactionScope = new TransactionScope();
+        _fileOpsManager.GenerateFile(sourcePath, content);
+        _fileOpsManager.CopyFile(sourcePath, destinationPath);
+        transactionScope.Complete();
+        transactionScope.Dispose();
+
+        Assert.True(File.Exists(sourcePath));
+        Assert.True(File.Exists(destinationPath));
     }
 
     private string GenerateFilePath()

@@ -24,8 +24,8 @@ public class DeleteDirectoryTransaction : DeleteDirectoryOperation, IFileOpsTran
     public override void Commit()
     {
         var sourceBackupFile = Path.Combine(_tempPath, Guid.NewGuid().ToString());
-        Directory.CreateDirectory(_sourceBackupPath);
-        DirectoryHelper.CopyDirectory(_sourcePath, _sourceBackupPath);
+        Directory.CreateDirectory(sourceBackupFile);
+        DirectoryHelper.CopyDirectory(_sourcePath, sourceBackupFile);
         _sourceBackupPath = sourceBackupFile;
 
         base.Commit();
