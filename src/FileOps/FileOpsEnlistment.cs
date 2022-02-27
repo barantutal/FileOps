@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Transactions;
+using FileOps.Abstraction;
+using FileOps.Operations;
 
 namespace FileOps;
 

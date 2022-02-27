@@ -1,10 +1,11 @@
 using System.IO;
+using FileOps.Abstraction;
 using FileOps.Exceptions;
 using FileOps.Helpers;
 
 namespace FileOps.Operations;
 
-public class CopyDirectoryOperation : IFileOpsTransaction
+public class CopyDirectoryOperation : IFileOps
 {
     private readonly string _sourcePath;
     private readonly string _destinationPath;
@@ -15,7 +16,7 @@ public class CopyDirectoryOperation : IFileOpsTransaction
         _destinationPath = destinationPath;
     }
     
-    public void Commit()
+    public virtual void Commit()
     {
         if (!Directory.Exists(_sourcePath))
         {
@@ -28,10 +29,5 @@ public class CopyDirectoryOperation : IFileOpsTransaction
         }
         
         DirectoryHelper.CopyDirectory(_sourcePath, _destinationPath);
-    }
-
-    public void RollBack()
-    {
-        Directory.Delete(_destinationPath, true);
     }
 }

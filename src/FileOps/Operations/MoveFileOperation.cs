@@ -1,25 +1,21 @@
-using System;
 using System.IO;
+using FileOps.Abstraction;
 using FileOps.Exceptions;
 
 namespace FileOps.Operations;
 
-public class MoveFileOperation : IFileOpsTransaction
+public class MoveFileOperation : IFileOps
 {
     private readonly string _sourcePath;
     private readonly string _destinationPath;
-    private readonly string _tempPath;
-    private string _backupPath;
-    private string _directoryPath;
-    
-    public MoveFileOperation(string sourcePath, string destinationPath, string tempPath) 
+
+    public MoveFileOperation(string sourcePath, string destinationPath) 
     {
         _sourcePath = sourcePath;
         _destinationPath = destinationPath;
-        _tempPath = tempPath;
     }
     
-    public void Commit()
+    public virtual void Commit()
     {
         if (!File.Exists(_sourcePath))
         {
@@ -31,30 +27,6 @@ public class MoveFileOperation : IFileOpsTransaction
             throw FileOperationException.DestinationPathExistsException(_destinationPath);
         }
         
-        var directoryPath = Path.GetDirectoryName(_destinationPath);
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-            _directoryPath = directoryPath;
-        }
-        
-        var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_sourcePath));
-        File.Copy(_sourcePath, backupPath);
-        _backupPath = backupPath;
         File.Move(_sourcePath, _destinationPath);
-    }
-
-    public void RollBack()
-    {
-        File.Delete(_destinationPath);
-        if (!File.Exists(_sourcePath) && _backupPath != null)
-        {
-            File.Move(_backupPath, _sourcePath);
-        }
-        
-        if (_directoryPath != null)
-        {
-            Directory.Delete(_directoryPath);
-        }
     }
 }

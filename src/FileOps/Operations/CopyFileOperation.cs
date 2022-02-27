@@ -1,13 +1,13 @@
 using System.IO;
+using FileOps.Abstraction;
 using FileOps.Exceptions;
 
 namespace FileOps.Operations;
 
-public sealed class CopyFileOperation : IFileOpsTransaction
+public class CopyFileOperation : IFileOps
 {
     private readonly string _sourcePath;
     private readonly string _destinationPath;
-    private string _directoryPath;
     
     public CopyFileOperation(string sourcePath, string destinationPath) 
     {
@@ -15,7 +15,7 @@ public sealed class CopyFileOperation : IFileOpsTransaction
         _destinationPath = destinationPath;
     }
     
-    public void Commit()
+    public virtual void Commit()
     {
         if (!File.Exists(_sourcePath))
         {
@@ -26,24 +26,7 @@ public sealed class CopyFileOperation : IFileOpsTransaction
         {
             throw FileOperationException.DestinationPathExistsException(_destinationPath);
         }
-
-        var directoryPath = Path.GetDirectoryName(_destinationPath);
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-            _directoryPath = directoryPath;
-        }
         
         File.Copy(_sourcePath, _destinationPath);
-    }
-
-    public void RollBack()
-    {
-        File.Delete(_destinationPath);
-        
-        if (_directoryPath != null)
-        {
-            Directory.Delete(_directoryPath);
-        }
     }
 }

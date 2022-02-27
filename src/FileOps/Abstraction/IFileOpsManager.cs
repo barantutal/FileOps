@@ -1,6 +1,4 @@
-using System;
-
-namespace FileOps;
+namespace FileOps.Abstraction;
 
 public interface IFileOpsManager
 {
@@ -8,8 +6,8 @@ public interface IFileOpsManager
     public void MoveDirectory(string sourcePath, string destinationPath);
     public void CopyDirectory(string sourcePath, string destinationPath);
     public void DeleteDirectory(string path);
-    public IFileInfo GenerateFile(string path, byte[] content);
-    public IFileInfo CopyFile(string sourcePath, string destinationPath);
-    public IFileInfo MoveFile(string sourcePath, string destinationPath);
+    public void GenerateFile(string path, byte[] content);
+    public void CopyFile(string sourcePath, string destinationPath);
+    public void MoveFile(string sourcePath, string destinationPath);
     public void DeleteFile(string path);
 }

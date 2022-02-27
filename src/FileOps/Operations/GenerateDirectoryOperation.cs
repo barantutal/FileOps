@@ -1,33 +1,25 @@
 using System.IO;
+using FileOps.Abstraction;
+using FileOps.Exceptions;
 
 namespace FileOps.Operations;
 
-public class GenerateDirectoryOperation : IFileOpsTransaction
+public class GenerateDirectoryOperation : IFileOps
 {
     private readonly string _path;
-    private bool _directoryGenerated;
     
     public GenerateDirectoryOperation(string path)
     {
         _path = path;
     }
     
-    public void Commit()
+    public virtual void Commit()
     {
         if (Directory.Exists(_path))
         {
-            return;
+            throw new FileOperationException($"Directory already exists on path {_path}");
         }
         
         Directory.CreateDirectory(_path);
-        _directoryGenerated = true;
-    }
-
-    public void RollBack()
-    {
-        if (_directoryGenerated)
-        {
-            Directory.Delete(_path);
-        }
     }
 }

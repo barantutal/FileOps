@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Transactions;
+using FileOps.Abstraction;
 using FileOps.Operations;
+using FileOps.Transactions;
 
 namespace FileOps;
 
@@ -20,74 +22,112 @@ public class FileOpsManager : IFileOpsManager
     
     public virtual void GenerateDirectory(string path)
     {
-        EnlistTransaction(new GenerateDirectoryOperation(path));
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add(new GenerateDirectoryTransaction(path));
+        }
+        else
+        {
+            new GenerateDirectoryOperation(path).Commit();
+        }
     }
     
     public virtual void MoveDirectory(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new MoveDirectoryOperation(sourcePath, destinationPath, _tempPath));
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add( new MoveDirectoryTransaction(sourcePath, destinationPath, _tempPath));
+        }
+        else
+        {
+            new MoveDirectoryOperation(sourcePath, destinationPath).Commit();
+        }
     }
 
     public void CopyDirectory(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new CopyDirectoryOperation(sourcePath, destinationPath));
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add(new CopyDirectoryTransaction(sourcePath, destinationPath));
+        }
+        else
+        {
+            new CopyDirectoryOperation(sourcePath, destinationPath).Commit(); 
+        }
     }
 
     public void DeleteDirectory(string path)
     {
-        EnlistTransaction(new DeleteDirectoryOperation(path, _tempPath));
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add(new DeleteDirectoryTransaction(path, _tempPath));
+        }
+        else
+        {
+            new DeleteDirectoryOperation(path).Commit();
+        }
     }
 
-    public virtual IFileInfo GenerateFile(string path, byte[] content)
+    public virtual void GenerateFile(string path, byte[] content)
     {
-        EnlistTransaction(new GenerateFileOperation(path, content));
-
-        var fileInfo = new System.IO.FileInfo(path);
-        return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add(new GenerateFileTransaction(path, content));
+        }
+        else
+        {
+            new GenerateFileOperation(path, content).Commit();
+        }
     }
     
-    public virtual IFileInfo CopyFile(string sourcePath, string destinationPath)
+    public virtual void CopyFile(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new CopyFileOperation(sourcePath, destinationPath));
-        
-        var fileInfo = new System.IO.FileInfo(destinationPath);
-        return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add(new CopyFileTransaction(sourcePath, destinationPath));
+        }
+        else
+        {
+            new CopyFileOperation(sourcePath, destinationPath).Commit();
+        }
     }
 
-    public IFileInfo MoveFile(string sourcePath, string destinationPath)
+    public void MoveFile(string sourcePath, string destinationPath)
     {
-        EnlistTransaction(new MoveFileOperation(sourcePath, destinationPath, _tempPath));
-        
-        var fileInfo = new System.IO.FileInfo(destinationPath);
-        return new FileInfo(fileInfo.Name, fileInfo.FullName, DateTime.Now, DateTime.Now, fileInfo.Length);
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add(new MoveFileTransaction(sourcePath, destinationPath, _tempPath));
+        }
+        else
+        {
+            new MoveFileOperation(sourcePath, destinationPath).Commit();
+        }
     }
 
     public virtual void DeleteFile(string path)
     {
-        EnlistTransaction(new DeleteFileOperation(path, _tempPath));
+        if (IsTransactionOpen())
+        {
+            _fileOpsEnlistment.Add(new DeleteFileTransaction(path, _tempPath));
+        }
+        else
+        {
+            new DeleteFileOperation(path).Commit();
+        }
     }
     
     public virtual bool IsTransactionOpen()
     {
-        return Transaction.Current != null;
-    }
-
-    public void EnlistTransaction(IFileOpsTransaction transaction)
-    {
-        if (IsTransactionOpen())
+        if (Transaction.Current != null)
         {
             _fileOpsEnlistment ??= new FileOpsEnlistment
             {
                 OnTransactionPreparing = Prepare,
                 OnRollback = Rollback,
             };
-
-            _fileOpsEnlistment.Add(transaction);
         }
-        else
-        {
-            transaction.Commit();
-        }
+        
+        return Transaction.Current != null;
     }
     
     private void Prepare()
