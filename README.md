@@ -41,11 +41,11 @@ public void GenerateRandomFiles()
     var info1 = Guid.NewGuid().ToString();
     var info2 = Guid.NewGuid().ToString();
 
-    var file1 = fileOpsManager.GenerateFile($"/somePath/test/file-{info1}.txt", Encoding.UTF8.GetBytes(info1));
-    var file2 = fileOpsManager.GenerateFile($"/somePath/test/file-{info2}.txt", Encoding.UTF8.GetBytes(info2));
+    fileOpsManager.GenerateFile($"/somePath/test/file-{info1}.txt", Encoding.UTF8.GetBytes(info1));
+    fileOpsManager.GenerateFile($"/somePath/test/file-{info2}.txt", Encoding.UTF8.GetBytes(info2));
                     
     // Content will be 'info1' for both files
-    var copiedFile = fileOpsManager.CopyFile($"/somePath/test/file-{info1}.txt", $"/somePath/test/file-{Guid.NewGuid().ToString()}.txt");
+    fileOpsManager.CopyFile($"/somePath/test/file-{info1}.txt", $"/somePath/test/file-{Guid.NewGuid().ToString()}.txt");
              
     scope.Complete();
 }
