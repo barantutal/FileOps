@@ -1,32 +1,33 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Transactions;
 using FileOps.Abstraction;
 using FileOps.Operations;
 using FileOps.Transactions;
 
 namespace FileOps;
 
-public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
+public class FileOpsManager : IFileOpsManager
 {
+    private readonly ITransactionManager _transactionManager;
     private readonly string _tempPath;
-    private readonly Stack<IFileOpsTransaction> _transactions;
-    public Action OnTransactionPreparing;
-    public Action OnRollback;
+    public Action OnTransactionPreparing { get; set; }
+    public Action OnRollback { get; set; }
     
     public FileOpsManager()
     {
-        _transactions = new Stack<IFileOpsTransaction>();
+        _transactionManager = new TransactionManager();
         _tempPath = Path.Combine(Path.GetTempPath(), "FileOpsManager-tempf");
         Directory.CreateDirectory(_tempPath);
+
+        _transactionManager.OnRollback = Rollback;
+        _transactionManager.OnTransactionPreparing = Prepare;
     }
     
     public virtual void GenerateDirectory(string path)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction(new GenerateDirectoryTransaction(path));
+            _transactionManager.AddTransaction(new GenerateDirectoryTransaction(path));
         }
         else
         {
@@ -36,9 +37,9 @@ public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
     
     public virtual void MoveDirectory(string sourcePath, string destinationPath)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction( new MoveDirectoryTransaction(sourcePath, destinationPath, _tempPath));
+            _transactionManager.AddTransaction( new MoveDirectoryTransaction(sourcePath, destinationPath, _tempPath));
         }
         else
         {
@@ -48,9 +49,9 @@ public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
 
     public void CopyDirectory(string sourcePath, string destinationPath)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction(new CopyDirectoryTransaction(sourcePath, destinationPath));
+            _transactionManager.AddTransaction(new CopyDirectoryTransaction(sourcePath, destinationPath));
         }
         else
         {
@@ -60,9 +61,9 @@ public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
 
     public void DeleteDirectory(string path)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction(new DeleteDirectoryTransaction(path, _tempPath));
+            _transactionManager.AddTransaction(new DeleteDirectoryTransaction(path, _tempPath));
         }
         else
         {
@@ -72,9 +73,9 @@ public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
 
     public virtual void GenerateFile(string path, byte[] content)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction(new GenerateFileTransaction(path, content));
+            _transactionManager.AddTransaction(new GenerateFileTransaction(path, content));
         }
         else
         {
@@ -84,9 +85,9 @@ public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
     
     public virtual void CopyFile(string sourcePath, string destinationPath)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction(new CopyFileTransaction(sourcePath, destinationPath));
+            _transactionManager.AddTransaction(new CopyFileTransaction(sourcePath, destinationPath));
         }
         else
         {
@@ -96,9 +97,9 @@ public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
 
     public void MoveFile(string sourcePath, string destinationPath)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction(new MoveFileTransaction(sourcePath, destinationPath, _tempPath));
+            _transactionManager.AddTransaction(new MoveFileTransaction(sourcePath, destinationPath, _tempPath));
         }
         else
         {
@@ -108,83 +109,23 @@ public class FileOpsManager : IFileOpsManager, IEnlistmentNotification
 
     public virtual void DeleteFile(string path)
     {
-        if (TransactionPrepared())
+        if (_transactionManager.TransactionStarted())
         {
-            AddTransaction(new DeleteFileTransaction(path, _tempPath));
+            _transactionManager.AddTransaction(new DeleteFileTransaction(path, _tempPath));
         }
         else
         {
             new DeleteFileOperation(path).Commit();
         }
     }
-    
-    public virtual bool TransactionPrepared()
-    {
-        if (Transaction.Current != null)
-        {
-            Transaction.Current.EnlistVolatile(this, EnlistmentOptions.None);
-        }
-        
-        return Transaction.Current != null;
-    }
-    
-    public void AddTransaction(IFileOpsTransaction fileOpsTransaction)
-    {
-        _transactions.Push(fileOpsTransaction);
-        fileOpsTransaction.Commit();
-    }
 
-    public void Commit(Enlistment enlistment)
-    {
-        enlistment.Done();
-    }
-
-    public void InDoubt(Enlistment enlistment)
-    {
-        Rollback(enlistment);
-    }
-
-    public void Prepare(PreparingEnlistment preparingEnlistment)
+    public void Prepare()
     {
         OnTransactionPreparing?.Invoke();
-        preparingEnlistment.Prepared();
-        DisposeTransactions();
     }
 
-    public void Rollback(Enlistment enlistment)
+    public void Rollback()
     {
-        try
-        {
-            OnRollback?.Invoke();
-            while (_transactions.Count > 0)
-            {
-                var transaction = _transactions.Pop();
-                transaction.RollBack();
-
-                DisposeTransaction(transaction);
-            }
-        }
-        catch (Exception e)
-        {
-            throw new TransactionException("Failed during rollback operation.", e);
-        }
-        
-        enlistment.Done();
-    }
-    
-    private void DisposeTransactions()
-    {
-        while (_transactions.Count > 0)
-        {
-            DisposeTransaction(_transactions.Pop());
-        }
-    }
-    
-    private void DisposeTransaction(IFileOpsTransaction transaction)
-    {
-        if (transaction is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
+        OnRollback?.Invoke();
     }
 }

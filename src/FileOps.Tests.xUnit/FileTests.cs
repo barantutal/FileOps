@@ -13,7 +13,7 @@ public class FileTests : IClassFixture<FileOpsManager>
     {
         _fileOpsManager = fileOpsManager;
         _tempPath = Path.Combine(Path.GetTempPath(), "FileOpsManager-tempf-tests");
-        
+
         if(Directory.Exists(_tempPath))
         {
             Directory.Delete(_tempPath, true);

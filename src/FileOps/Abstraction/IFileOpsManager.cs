@@ -1,3 +1,5 @@
+using System;
+
 namespace FileOps.Abstraction;
 
 public interface IFileOpsManager
@@ -10,4 +12,6 @@ public interface IFileOpsManager
     public void CopyFile(string sourcePath, string destinationPath);
     public void MoveFile(string sourcePath, string destinationPath);
     public void DeleteFile(string path);
+    Action OnTransactionPreparing { get; set; }
+    Action OnRollback { get; set; }
 }
