@@ -94,6 +94,26 @@ public class FileTests : IClassFixture<FileOpsManager>
         Assert.True(File.Exists(sourcePath));
         Assert.True(File.Exists(destinationPath));
     }
+    
+    [Fact]
+    public async Task CopiesFileAsync()
+    {
+        var sourcePath = GenerateFilePath();
+        var destinationPath = GenerateFilePath();
+        var content = GenerateContent();
+
+        Assert.True(!File.Exists(sourcePath));
+        Assert.True(!File.Exists(destinationPath));
+        
+        var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        _fileOpsManager.GenerateFile(sourcePath, content);
+        await _fileOpsManager.CopyFileAsync(sourcePath, destinationPath);
+        transactionScope.Complete();
+        transactionScope.Dispose();
+
+        Assert.True(File.Exists(sourcePath));
+        Assert.True(File.Exists(destinationPath));
+    }
 
     private string GenerateFilePath()
     {

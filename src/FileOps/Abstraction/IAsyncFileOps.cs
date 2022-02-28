@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace FileOps.Abstraction;
 
-public interface IFileOps
+public interface IAsyncFileOps
 {
-    void Commit();
+    Task CommitAsync();
 }

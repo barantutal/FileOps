@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using FileOps.Abstraction;
 using FileOps.Operations;
 using FileOps.Transactions;
@@ -23,7 +24,7 @@ public class FileOpsManager : IFileOpsManager
         _transactionManager.OnTransactionPreparing = Prepare;
     }
     
-    public virtual void GenerateDirectory(string path)
+    public void GenerateDirectory(string path)
     {
         if (_transactionManager.TransactionStarted())
         {
@@ -35,7 +36,7 @@ public class FileOpsManager : IFileOpsManager
         }
     }
     
-    public virtual void MoveDirectory(string sourcePath, string destinationPath)
+    public void MoveDirectory(string sourcePath, string destinationPath)
     {
         if (_transactionManager.TransactionStarted())
         {
@@ -58,6 +59,18 @@ public class FileOpsManager : IFileOpsManager
             new CopyDirectoryOperation(sourcePath, destinationPath).Commit(); 
         }
     }
+    
+    public async Task CopyDirectoryAsync(string sourcePath, string destinationPath)
+    {
+        if (_transactionManager.TransactionStarted())
+        {
+            await _transactionManager.AddTransactionAsync(new CopyDirectoryTransaction(sourcePath, destinationPath));
+        }
+        else
+        {
+            await new CopyDirectoryOperation(sourcePath, destinationPath).CommitAsync(); 
+        }
+    }
 
     public void DeleteDirectory(string path)
     {
@@ -71,7 +84,7 @@ public class FileOpsManager : IFileOpsManager
         }
     }
 
-    public virtual void GenerateFile(string path, byte[] content)
+    public void GenerateFile(string path, byte[] content)
     {
         if (_transactionManager.TransactionStarted())
         {
@@ -83,7 +96,7 @@ public class FileOpsManager : IFileOpsManager
         }
     }
     
-    public virtual void CopyFile(string sourcePath, string destinationPath)
+    public void CopyFile(string sourcePath, string destinationPath)
     {
         if (_transactionManager.TransactionStarted())
         {
@@ -92,6 +105,18 @@ public class FileOpsManager : IFileOpsManager
         else
         {
             new CopyFileOperation(sourcePath, destinationPath).Commit();
+        }
+    }
+    
+    public async Task CopyFileAsync(string sourcePath, string destinationPath)
+    {
+        if (_transactionManager.TransactionStarted())
+        {
+            await _transactionManager.AddTransactionAsync(new CopyFileTransaction(sourcePath, destinationPath));
+        }
+        else
+        {
+            await new CopyFileOperation(sourcePath, destinationPath).CommitAsync();
         }
     }
 
@@ -107,7 +132,7 @@ public class FileOpsManager : IFileOpsManager
         }
     }
 
-    public virtual void DeleteFile(string path)
+    public void DeleteFile(string path)
     {
         if (_transactionManager.TransactionStarted())
         {

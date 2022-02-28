@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Transactions;
 using FileOps.Abstraction;
 
@@ -30,6 +31,12 @@ public class TransactionManager : IEnlistmentNotification, ITransactionManager
     {
         _transactions.Push(fileOpsTransaction);
         fileOpsTransaction.Commit();
+    }
+    
+    public async Task AddTransactionAsync(IAsyncFileOpsTransaction asyncFileOpsTransaction)
+    {
+        _transactions.Push(asyncFileOpsTransaction);
+        await asyncFileOpsTransaction.CommitAsync();
     }
 
     public void Commit(Enlistment enlistment)

@@ -90,6 +90,25 @@ public class DirectoryTests : IClassFixture<FileOpsManager>
         Assert.True(Directory.Exists(destinationPath));
     }
     
+    [Fact]
+    public async Task CopiesDirectoryAsync()
+    {
+        var sourcePath = GenerateDirectoryPath();
+        var destinationPath = GenerateDirectoryPath();
+
+        Assert.True(!Directory.Exists(sourcePath));
+        Assert.True(!Directory.Exists(destinationPath));
+        
+        var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        _fileOpsManager.GenerateDirectory(sourcePath);
+        await _fileOpsManager.CopyDirectoryAsync(sourcePath, destinationPath);
+        transactionScope.Complete();
+        transactionScope.Dispose();
+        
+        Assert.True(Directory.Exists(sourcePath));
+        Assert.True(Directory.Exists(destinationPath));
+    }
+    
     private string GenerateDirectoryPath()
     {
         return Path.Combine(_tempPath, Guid.NewGuid().ToString());

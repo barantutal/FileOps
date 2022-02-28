@@ -1,10 +1,12 @@
 using System.IO;
+using System.Threading.Tasks;
 using FileOps.Abstraction;
 using FileOps.Exceptions;
+using FileOps.Helpers;
 
 namespace FileOps.Operations;
 
-public class CopyFileOperation : IFileOps
+public class CopyFileOperation : IFileOps, IAsyncFileOps
 {
     private readonly string _sourcePath;
     private readonly string _destinationPath;
@@ -17,6 +19,18 @@ public class CopyFileOperation : IFileOps
     
     public virtual void Commit()
     {
+        Prepare();
+        File.Copy(_sourcePath, _destinationPath);
+    }
+
+    public virtual async Task CommitAsync()
+    {
+        Prepare();
+        await FileHelper.CopyFileAsync(_sourcePath, _destinationPath);
+    }
+
+    private void Prepare()
+    {
         if (!File.Exists(_sourcePath))
         {
             throw FileOperationException.MissingSourcePathException(_sourcePath);
@@ -26,7 +40,5 @@ public class CopyFileOperation : IFileOps
         {
             throw FileOperationException.DestinationPathExistsException(_destinationPath);
         }
-        
-        File.Copy(_sourcePath, _destinationPath);
     }
 }

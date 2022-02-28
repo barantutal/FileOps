@@ -4,7 +4,7 @@ using FileOps.Operations;
 
 namespace FileOps.Transactions;
 
-public class CopyDirectoryTransaction : CopyDirectoryOperation, IFileOpsTransaction
+public class CopyDirectoryTransaction : CopyDirectoryOperation, IAsyncFileOpsTransaction
 {
     private readonly string _destinationPath;
 
