@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebApi", "samples\Sam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOps.Tests.xUnit", "src\FileOps.Tests.xUnit\FileOps.Tests.xUnit.csproj", "{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOps.Tests.Benchmark", "src\FileOps.Tests.Benchmark\FileOps.Tests.Benchmark.csproj", "{155A5BF0-EC41-4DCE-A767-25D94ADC151D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46F6F9F6-0F2F-4592-AE3E-FE198EBB12D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{155A5BF0-EC41-4DCE-A767-25D94ADC151D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{155A5BF0-EC41-4DCE-A767-25D94ADC151D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{155A5BF0-EC41-4DCE-A767-25D94ADC151D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{155A5BF0-EC41-4DCE-A767-25D94ADC151D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
