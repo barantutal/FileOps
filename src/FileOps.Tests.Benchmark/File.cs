@@ -10,6 +10,11 @@ public class File
 {
     private FileOpsManager _fileOpsManager;
     private string _tempPath;
+
+    private string _emptyPath;
+    private string _generatedFilePathWithContent;
+    private string _generatedFilePathWithContent2;
+    private byte[] _content;
     
     [GlobalSetup]
     public void Setup()
@@ -24,15 +29,33 @@ public class File
         
         Directory.CreateDirectory(_tempPath);
     }
+
+    [IterationSetup]
+    public void IterationSetup()
+    {
+        _emptyPath = GenerateFilePath();
+        _generatedFilePathWithContent = GenerateFilePath();
+        _fileOpsManager.GenerateFile(_generatedFilePathWithContent, GenerateContent());
+        _generatedFilePathWithContent2 = GenerateFilePath();
+        _fileOpsManager.GenerateFile(_generatedFilePathWithContent2, GenerateContent());
+    }
     
+    [IterationCleanup]
+    public void IterationCleanup()
+    {
+        if(Directory.Exists(_tempPath))
+        {
+            Directory.Delete(_tempPath, true);
+        }
+        
+        Directory.CreateDirectory(_tempPath);
+    }
+
     [Benchmark]
     public void GenerateFile()
     {
-        var path = GenerateFilePath();
-        var content = GenerateContent();
-        
         var transactionScope = new TransactionScope();
-        _fileOpsManager.GenerateFile(path, content);
+        _fileOpsManager.GenerateFile(_emptyPath, _content);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
@@ -40,12 +63,8 @@ public class File
     [Benchmark]
     public void DeleteFile()
     {
-        var path = GenerateFilePath();
-        var content = GenerateContent();
-        
         var transactionScope = new TransactionScope();
-        _fileOpsManager.GenerateFile(path, content);
-        _fileOpsManager.DeleteFile(path);
+        _fileOpsManager.DeleteFile(_generatedFilePathWithContent);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
@@ -53,13 +72,8 @@ public class File
     [Benchmark]
     public void MoveFile()
     {
-        var sourcePath = GenerateFilePath();
-        var destinationPath = GenerateFilePath();
-        var content = GenerateContent();
-        
         var transactionScope = new TransactionScope();
-        _fileOpsManager.GenerateFile(sourcePath, content);
-        _fileOpsManager.MoveFile(sourcePath, destinationPath);
+        _fileOpsManager.MoveFile(_generatedFilePathWithContent, _emptyPath);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
@@ -67,13 +81,8 @@ public class File
     [Benchmark]
     public void CopyFile()
     {
-        var sourcePath = GenerateFilePath();
-        var destinationPath = GenerateFilePath();
-        var content = GenerateContent();
-
         var transactionScope = new TransactionScope();
-        _fileOpsManager.GenerateFile(sourcePath, content);
-        _fileOpsManager.CopyFile(sourcePath, destinationPath);
+        _fileOpsManager.CopyFile(_generatedFilePathWithContent, _emptyPath);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
@@ -81,13 +90,8 @@ public class File
     [Benchmark]
     public async Task CopyFileAsync()
     {
-        var sourcePath = GenerateFilePath();
-        var destinationPath = GenerateFilePath();
-        var content = GenerateContent();
-
         var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-        _fileOpsManager.GenerateFile(sourcePath, content);
-        await _fileOpsManager.CopyFileAsync(sourcePath, destinationPath);
+        await _fileOpsManager.CopyFileAsync(_generatedFilePathWithContent, _emptyPath);
         transactionScope.Complete();
         transactionScope.Dispose();
     }

@@ -17,3 +17,4 @@ Properties
 /pack.bat
 .vscode/*
 site/
+BenchmarkDotNet.Artifacts/
