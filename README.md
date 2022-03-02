@@ -43,8 +43,6 @@ public void GenerateRandomFiles()
 
     fileOpsManager.GenerateFile($"/somePath/test/file-{info1}.txt", Encoding.UTF8.GetBytes(info1));
     fileOpsManager.GenerateFile($"/somePath/test/file-{info2}.txt", Encoding.UTF8.GetBytes(info2));
-                    
-    // Content will be 'info1' for both files
     fileOpsManager.CopyFile($"/somePath/test/file-{info1}.txt", $"/somePath/test/file-{Guid.NewGuid().ToString()}.txt");
              
     scope.Complete();
