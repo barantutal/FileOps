@@ -46,7 +46,7 @@ public class DirectoryBenchmark
     }
     
     [Benchmark]
-    public void GeneratesDirectory()
+    public void GenerateDirectory()
     {
         var transactionScope = new TransactionScope();
         _fileOpsManager.GenerateDirectory(_emptyPath);
@@ -55,7 +55,7 @@ public class DirectoryBenchmark
     }
     
     [Benchmark]
-    public void DeletesDirectory()
+    public void DeleteDirectory()
     {
         var transactionScope = new TransactionScope();
         _fileOpsManager.DeleteDirectory(_directoryPath);
@@ -64,7 +64,7 @@ public class DirectoryBenchmark
     }
     
     [Benchmark]
-    public void MovesDirectory()
+    public void MoveDirectory()
     {
         var transactionScope = new TransactionScope();
         _fileOpsManager.MoveDirectory(_directoryPath, _emptyPath);
@@ -73,7 +73,7 @@ public class DirectoryBenchmark
     }
     
     [Benchmark]
-    public void CopiesDirectory()
+    public void CopyDirectory()
     {
         var transactionScope = new TransactionScope();
         _fileOpsManager.CopyDirectory(_directoryPath, _emptyPath);
@@ -82,7 +82,7 @@ public class DirectoryBenchmark
     }
     
     [Benchmark]
-    public async Task CopiesDirectoryAsync()
+    public async Task CopyDirectoryAsync()
     {
         var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
         await _fileOpsManager.CopyDirectoryAsync(_directoryPath, _emptyPath);
