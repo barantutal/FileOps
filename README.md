@@ -38,12 +38,10 @@ public void GenerateRandomFiles()
 
     using var scope = new TransactionScope();
 
-    var info1 = Guid.NewGuid().ToString();
-    var info2 = Guid.NewGuid().ToString();
+    var info = Guid.NewGuid().ToString();
 
-    fileOpsManager.GenerateFile($"/somePath/test/file-{info1}.txt", Encoding.UTF8.GetBytes(info1));
-    fileOpsManager.GenerateFile($"/somePath/test/file-{info2}.txt", Encoding.UTF8.GetBytes(info2));
-    fileOpsManager.CopyFile($"/somePath/test/file-{info1}.txt", $"/somePath/test/file-{Guid.NewGuid().ToString()}.txt");
+    fileOpsManager.GenerateFile($"/somePath/test/file-{info}.txt", Encoding.UTF8.GetBytes(info));
+    fileOpsManager.CopyFile($"/somePath/test/file-{info}.txt", $"/somePath/test/file-{Guid.NewGuid().ToString()}.txt");
              
     scope.Complete();
 }
