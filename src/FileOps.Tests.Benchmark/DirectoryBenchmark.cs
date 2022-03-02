@@ -1,20 +1,16 @@
-using System.Text;
-using System.Threading.Channels;
 using System.Transactions;
 using BenchmarkDotNet.Attributes;
 
 namespace FileOps.Tests.Benchmark;
 
 [RPlotExporter]
-public class File
+public class DirectoryBenchmark
 {
     private FileOpsManager _fileOpsManager;
     private string _tempPath;
 
     private string _emptyPath;
-    private string _generatedFilePathWithContent;
-    private string _generatedFilePathWithContent2;
-    private byte[] _content;
+    private string _directoryPath;
     
     [GlobalSetup]
     public void Setup()
@@ -33,11 +29,9 @@ public class File
     [IterationSetup]
     public void IterationSetup()
     {
-        _emptyPath = GenerateFilePath();
-        _generatedFilePathWithContent = GenerateFilePath();
-        _fileOpsManager.GenerateFile(_generatedFilePathWithContent, GenerateContent());
-        _generatedFilePathWithContent2 = GenerateFilePath();
-        _fileOpsManager.GenerateFile(_generatedFilePathWithContent2, GenerateContent());
+        _emptyPath = GenerateDirectoryPath();
+        _directoryPath = GenerateDirectoryPath();
+        _fileOpsManager.GenerateDirectory(_directoryPath);
     }
     
     [IterationCleanup]
@@ -50,59 +44,54 @@ public class File
         
         Directory.CreateDirectory(_tempPath);
     }
-
+    
     [Benchmark]
-    public void GenerateFile()
+    public void GeneratesDirectory()
     {
         var transactionScope = new TransactionScope();
-        _fileOpsManager.GenerateFile(_emptyPath, _content);
+        _fileOpsManager.GenerateDirectory(_emptyPath);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
     
     [Benchmark]
-    public void DeleteFile()
+    public void DeletesDirectory()
     {
         var transactionScope = new TransactionScope();
-        _fileOpsManager.DeleteFile(_generatedFilePathWithContent);
+        _fileOpsManager.DeleteDirectory(_directoryPath);
+        transactionScope.Complete();
+        transactionScope.Dispose(); 
+    }
+    
+    [Benchmark]
+    public void MovesDirectory()
+    {
+        var transactionScope = new TransactionScope();
+        _fileOpsManager.MoveDirectory(_directoryPath, _emptyPath);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
     
     [Benchmark]
-    public void MoveFile()
+    public void CopiesDirectory()
     {
         var transactionScope = new TransactionScope();
-        _fileOpsManager.MoveFile(_generatedFilePathWithContent, _emptyPath);
+        _fileOpsManager.CopyDirectory(_directoryPath, _emptyPath);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
     
     [Benchmark]
-    public void CopyFile()
-    {
-        var transactionScope = new TransactionScope();
-        _fileOpsManager.CopyFile(_generatedFilePathWithContent, _emptyPath);
-        transactionScope.Complete();
-        transactionScope.Dispose();
-    }
-    
-    [Benchmark]
-    public async Task CopyFileAsync()
+    public async Task CopiesDirectoryAsync()
     {
         var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-        await _fileOpsManager.CopyFileAsync(_generatedFilePathWithContent, _emptyPath);
+        await _fileOpsManager.CopyDirectoryAsync(_directoryPath, _emptyPath);
         transactionScope.Complete();
         transactionScope.Dispose();
     }
-    
-    private string GenerateFilePath()
-    {
-        return Path.Combine(_tempPath, $"{Guid.NewGuid()}.txt");
-    }
 
-    private byte[] GenerateContent()
+    private string GenerateDirectoryPath()
     {
-        return Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
+        return Path.Combine(_tempPath, Guid.NewGuid().ToString());
     }
 }
