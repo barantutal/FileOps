@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FileOps.Abstraction;
 using FileOps.Operations;
 using FileOps.Transactions;
+using Microsoft.AspNetCore.Http;
 
 namespace FileOps;
 
@@ -105,6 +106,30 @@ public class FileOpsManager : IFileOpsManager
         else
         {
             await new GenerateFileOperation(path, content).CommitAsync();
+        }
+    }
+    
+    public void GenerateFormFile(string path, IFormFile content)
+    {
+        if (_transactionManager.TransactionStarted())
+        {
+            _transactionManager.AddTransaction(new GenerateFormFileTransaction(path, content));
+        }
+        else
+        {
+            new GenerateFormFileTransaction(path, content).Commit();
+        }
+    }
+
+    public async Task GenerateFormFileAsync(string path, IFormFile content)
+    {
+        if (_transactionManager.TransactionStarted())
+        {
+            _transactionManager.AddTransaction(new GenerateFormFileTransaction(path, content));
+        }
+        else
+        {
+            await new GenerateFormFileTransaction(path, content).CommitAsync();
         }
     }
 
