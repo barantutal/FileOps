@@ -39,6 +39,22 @@ public class FileTests : IClassFixture<FileOpsManager>
     }
     
     [Fact]
+    public async Task GeneratesFileAsync()
+    {
+        var path = GenerateFilePath();
+        var content = GenerateContent();
+
+        Assert.True(!File.Exists(path));
+        
+        var transactionScope = new TransactionScope();
+        await _fileOpsManager.GenerateFileAsync(path, content);
+        transactionScope.Complete();
+        transactionScope.Dispose();
+        
+        Assert.True(File.Exists(path));
+    }
+    
+    [Fact]
     public void DeletesFile()
     {
         var path = GenerateFilePath();
@@ -106,7 +122,7 @@ public class FileTests : IClassFixture<FileOpsManager>
         Assert.True(!File.Exists(destinationPath));
         
         var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-        _fileOpsManager.GenerateFile(sourcePath, content);
+        await _fileOpsManager.GenerateFileAsync(sourcePath, content);
         await _fileOpsManager.CopyFileAsync(sourcePath, destinationPath);
         transactionScope.Complete();
         transactionScope.Dispose();

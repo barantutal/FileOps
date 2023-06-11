@@ -61,6 +61,15 @@ public class FileBenchmark
     }
     
     [Benchmark]
+    public async Task GenerateFileAsync()
+    {
+        var transactionScope = new TransactionScope();
+        await _fileOpsManager.GenerateFileAsync(_emptyPath, _content);
+        transactionScope.Complete();
+        transactionScope.Dispose();
+    }
+    
+    [Benchmark]
     public void DeleteFile()
     {
         var transactionScope = new TransactionScope();

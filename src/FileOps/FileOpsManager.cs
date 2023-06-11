@@ -95,7 +95,19 @@ public class FileOpsManager : IFileOpsManager
             new GenerateFileOperation(path, content).Commit();
         }
     }
-    
+
+    public async Task GenerateFileAsync(string path, byte[] content)
+    {
+        if (_transactionManager.TransactionStarted())
+        {
+            _transactionManager.AddTransaction(new GenerateFileTransaction(path, content));
+        }
+        else
+        {
+            await new GenerateFileOperation(path, content).CommitAsync();
+        }
+    }
+
     public void CopyFile(string sourcePath, string destinationPath)
     {
         if (_transactionManager.TransactionStarted())
