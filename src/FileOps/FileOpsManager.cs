@@ -96,6 +96,18 @@ public class FileOpsManager : IFileOpsManager
             new GenerateFileOperation(path, content).Commit();
         }
     }
+    
+    public void GenerateFile(string path, IFormFile content)
+    {
+        if (_transactionManager.TransactionStarted())
+        {
+            _transactionManager.AddTransaction(new GenerateFormFileTransaction(path, content));
+        }
+        else
+        {
+            new GenerateFormFileTransaction(path, content).Commit();
+        }
+    }
 
     public async Task GenerateFileAsync(string path, byte[] content)
     {
@@ -108,20 +120,8 @@ public class FileOpsManager : IFileOpsManager
             await new GenerateFileOperation(path, content).CommitAsync();
         }
     }
-    
-    public void GenerateFormFile(string path, IFormFile content)
-    {
-        if (_transactionManager.TransactionStarted())
-        {
-            _transactionManager.AddTransaction(new GenerateFormFileTransaction(path, content));
-        }
-        else
-        {
-            new GenerateFormFileTransaction(path, content).Commit();
-        }
-    }
 
-    public async Task GenerateFormFileAsync(string path, IFormFile content)
+    public async Task GenerateFileAsync(string path, IFormFile content)
     {
         if (_transactionManager.TransactionStarted())
         {
