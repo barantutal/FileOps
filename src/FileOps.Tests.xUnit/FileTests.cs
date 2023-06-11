@@ -68,7 +68,7 @@ public class FileTests : IClassFixture<FileOpsManager>
         var formFile = new FormFile(ms, 0, ms.Length, "test-file", Path.GetFileName(path));
 
         var transactionScope = new TransactionScope();
-        _fileOpsManager.GenerateFormFile(path, formFile);
+        _fileOpsManager.GenerateFile(path, formFile);
         transactionScope.Complete();
         transactionScope.Dispose();
 
@@ -88,7 +88,7 @@ public class FileTests : IClassFixture<FileOpsManager>
         var formFile = new FormFile(ms, 0, ms.Length, "test-file", Path.GetFileName(path));
         
         var transactionScope = new TransactionScope();
-        await _fileOpsManager.GenerateFormFileAsync(path, formFile);
+        await _fileOpsManager.GenerateFileAsync(path, formFile);
         transactionScope.Complete();
         transactionScope.Dispose();
 
