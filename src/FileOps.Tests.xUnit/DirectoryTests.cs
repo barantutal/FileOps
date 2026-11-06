@@ -11,8 +11,10 @@ public class DirectoryTests : IClassFixture<FileOpsManager>
     public DirectoryTests(FileOpsManager fileOpsManager)
     {
         _fileOpsManager = fileOpsManager;
-        _tempPath = Path.Combine(Path.GetTempPath(), "FileOpsManager-tempf-tests");
-        
+        // Own folder per test class: xUnit runs the classes in parallel and each constructor
+        // wipes its folder, so a shared one was deleted under a running test.
+        _tempPath = Path.Combine(Path.GetTempPath(), "FileOpsManager-tempf-tests", nameof(DirectoryTests));
+
         if(Directory.Exists(_tempPath))
         {
             Directory.Delete(_tempPath, true);
