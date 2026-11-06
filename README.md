@@ -31,6 +31,29 @@ var fileOpsManager = new FileOpsManager();
 
 ### Usage
 
+A sample usage with a database transaction.
+
+```cs
+var executionStrategy = _context.Database.CreateExecutionStrategy();
+
+var fileOps = new FileOpsManager();
+
+await executionStrategy.ExecuteAsync(async () =>
+{
+    using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+    var path = "/var/path/file.ext";
+
+    await fileOps.GenerateFileAsync(path, new byte[] {});
+
+    _context.Add(new DbFile() { Path = path });
+
+    await _context.SaveChangesAsync();
+
+    scope.Complete();
+});
+```    
+
 ```cs
 public void GenerateRandomFiles()
 {
