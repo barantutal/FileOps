@@ -11,7 +11,7 @@ public class DeleteFileTransaction : DeleteFileOperation, IFileOpsTransaction, I
 {
     private readonly string _tempPath;
     private readonly string _path;
-    private string? _backupPath;
+    private string _backupPath;
     private bool _disposed;
     
     public DeleteFileTransaction(string path, string tempPath) : base(path)
@@ -34,7 +34,7 @@ public class DeleteFileTransaction : DeleteFileOperation, IFileOpsTransaction, I
     {
         if (_backupPath != null)
         {
-            File.Copy(_backupPath, _path);
+            File.Copy(_backupPath, _path, true);
         }
     }
     

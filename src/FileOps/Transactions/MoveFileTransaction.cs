@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using FileOps.Abstraction;
 using FileOps.Backup;
+using FileOps.Helpers;
 using FileOps.Operations;
 
 namespace FileOps.Transactions;
@@ -13,7 +14,7 @@ public class MoveFileTransaction : MoveFileOperation, IFileOpsTransaction, IDisp
     private readonly string _destinationPath;
     private readonly string _tempPath;
     private string _backupPath;
-    private string _directoryPath;
+    private string _createdDirectoryRoot;
     private bool _disposed;
     
     public MoveFileTransaction(string sourcePath, string destinationPath, string tempPath) : base(sourcePath, destinationPath)
@@ -25,13 +26,8 @@ public class MoveFileTransaction : MoveFileOperation, IFileOpsTransaction, IDisp
     
     public override void Commit()
     {
-        var directoryPath = Path.GetDirectoryName(_destinationPath);
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-            _directoryPath = directoryPath;
-        }
-        
+        _createdDirectoryRoot = DirectoryHelper.EnsureParentDirectory(_destinationPath);
+
         var backupPath = Path.Combine(_tempPath, Guid.NewGuid() + Path.GetExtension(_sourcePath));
         File.Copy(_sourcePath, backupPath);
         _backupPath = backupPath;
@@ -47,10 +43,7 @@ public class MoveFileTransaction : MoveFileOperation, IFileOpsTransaction, IDisp
             File.Move(_backupPath, _sourcePath);
         }
         
-        if (_directoryPath != null)
-        {
-            Directory.Delete(_directoryPath);
-        }
+        DirectoryHelper.RemoveCreatedDirectories(Path.GetDirectoryName(Path.GetFullPath(_destinationPath)), _createdDirectoryRoot);
     }
     
     ~MoveFileTransaction()

@@ -35,10 +35,16 @@ public class MoveDirectoryTransaction : MoveDirectoryOperation, IFileOpsTransact
 
     public void RollBack()
     {
-        Directory.Delete(_destinationPath, true);
-        if (_sourceBackupPath != null)
+        if (Directory.Exists(_destinationPath))
         {
-            Directory.Move(_sourceBackupPath, _sourcePath);
+            Directory.Delete(_destinationPath, true);
+        }
+
+        // Copied, not moved: the backup lives under the system temp path, and Directory.Move fails
+        // across volumes (tmpfs on Linux, another drive on Windows), which left the source gone.
+        if (_sourceBackupPath != null && !Directory.Exists(_sourcePath))
+        {
+            DirectoryHelper.CopyDirectory(_sourceBackupPath, _sourcePath);
         }
     }
 

@@ -1,5 +1,6 @@
 using System.IO;
 using FileOps.Abstraction;
+using FileOps.Helpers;
 using FileOps.Operations;
 using Microsoft.AspNetCore.Http;
 
@@ -8,7 +9,7 @@ namespace FileOps.Transactions;
 public class GenerateFormFileTransaction : GenerateFormFileOperation, IFileOpsTransaction
 {
     private readonly string _path;
-    private string _directoryPath;
+    private string _createdDirectoryRoot;
     
     public GenerateFormFileTransaction(string path, IFormFile fileContent) : base(path, fileContent)
     {
@@ -17,23 +18,13 @@ public class GenerateFormFileTransaction : GenerateFormFileOperation, IFileOpsTr
     
     public override void Commit()
     {
-        var directoryPath = Path.GetDirectoryName(_path);
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-            _directoryPath = directoryPath;
-        }
-        
+        _createdDirectoryRoot = DirectoryHelper.EnsureParentDirectory(_path);
         base.Commit();
     }
 
     public void RollBack()
     {
         File.Delete(_path);
-
-        if (_directoryPath != null)
-        {
-            Directory.Delete(_directoryPath);
-        }
+        DirectoryHelper.RemoveCreatedDirectories(Path.GetDirectoryName(Path.GetFullPath(_path)), _createdDirectoryRoot);
     }
 }

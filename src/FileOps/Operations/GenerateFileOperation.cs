@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using FileOps.Abstraction;
@@ -25,7 +24,6 @@ public class GenerateFileOperation : IFileOps, IAsyncFileOps
         }
         
         File.WriteAllBytes(_path, _fileContent);
-        Array.Clear(_fileContent, 0, _fileContent.Length);
     }
 
     public async Task CommitAsync()
@@ -36,6 +34,5 @@ public class GenerateFileOperation : IFileOps, IAsyncFileOps
         }
         
         await File.WriteAllBytesAsync(_path, _fileContent);
-        Array.Clear(_fileContent, 0, _fileContent.Length);
     }
 }
