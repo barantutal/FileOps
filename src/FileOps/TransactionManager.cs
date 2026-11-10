@@ -38,16 +38,38 @@ public class TransactionManager : IEnlistmentNotification, ITransactionManager
         return true;
     }
 
+    // An operation joins the rollback stack only once its Commit has succeeded. A refused operation
+    // (missing source, existing destination, invalid move) has changed nothing, and rolling it back
+    // would act on paths it never touched: delete a destination that already existed, or fail on one
+    // that was never created and hide the original refusal behind "Failed during rollback operation".
     public void AddTransaction(IFileOpsTransaction fileOpsTransaction)
     {
+        try
+        {
+            fileOpsTransaction.Commit();
+        }
+        catch
+        {
+            DisposeTransaction(fileOpsTransaction);
+            throw;
+        }
+
         _transactions.Push(fileOpsTransaction);
-        fileOpsTransaction.Commit();
     }
 
     public async Task AddTransactionAsync(IAsyncFileOpsTransaction asyncFileOpsTransaction)
     {
+        try
+        {
+            await asyncFileOpsTransaction.CommitAsync();
+        }
+        catch
+        {
+            DisposeTransaction(asyncFileOpsTransaction);
+            throw;
+        }
+
         _transactions.Push(asyncFileOpsTransaction);
-        await asyncFileOpsTransaction.CommitAsync();
     }
 
     public void Prepare(PreparingEnlistment preparingEnlistment)

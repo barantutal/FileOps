@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <LangVersion>10</LangVersion>
-    <Version>1.2.2</Version>
+    <Version>1.2.3</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/barantutal/FileOps</RepositoryUrl>
   </PropertyGroup>

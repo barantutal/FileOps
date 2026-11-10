@@ -1,3 +1,4 @@
+using FileOps.Helpers;
 using System.IO;
 using FileOps.Abstraction;
 using FileOps.Exceptions;
@@ -27,12 +28,12 @@ public class MoveDirectoryOperation : IFileOps
             throw FileOperationException.DestinationPathExistsException(_destinationPath);
         }
 
-        if (_sourcePath.StartsWith(_destinationPath))
+        if (PathHelper.IsInside(_sourcePath, _destinationPath))
         {
             throw new FileOperationException($"Cannot move child path {_sourcePath} to parent path {_destinationPath}.");
         }
         
-        if (_destinationPath.StartsWith(_sourcePath))
+        if (PathHelper.IsInside(_destinationPath, _sourcePath))
         {
             throw new FileOperationException($"Cannot move parent path {_sourcePath} to child path {_destinationPath}.");
         }

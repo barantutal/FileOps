@@ -8,6 +8,7 @@ namespace FileOps.Tests.xUnit;
 // connection. Those participants can still fail after FileOps has voted "prepared": a database
 // commit may be refused (serialization failure, constraint, lost connection). The disk change
 // must then be undone like every other change in the scope.
+[Collection(BackupFolderCollection.Name)]
 public class TransactionAbortTests
 {
     private readonly string _tempPath;

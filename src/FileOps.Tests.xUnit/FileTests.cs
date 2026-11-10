@@ -5,6 +5,7 @@ using Xunit;
 
 namespace FileOps.Tests.xUnit;
 
+[Collection(BackupFolderCollection.Name)]
 public class FileTests : IClassFixture<FileOpsManager>
 {
     private readonly FileOpsManager _fileOpsManager;
