@@ -1,71 +1,47 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using FileOps.Abstraction;
-using FileOps.Backup;
-using FileOps.Helpers;
+using FileOps.Exceptions;
 using FileOps.Operations;
 
 namespace FileOps.Transactions;
 
-public class MoveDirectoryTransaction : MoveDirectoryOperation, IFileOpsTransaction, IDisposable
+// A directory move is a rename on one volume, so it is undone by the reverse rename. No backup copy
+// of the tree is taken: copying a large folder before every move took longer than the transaction
+// timeout, and the move it protected cannot cross volumes in the first place.
+public class MoveDirectoryTransaction : MoveDirectoryOperation, IFileOpsTransaction
 {
-    private readonly string _tempPath;
     private readonly string _sourcePath;
     private readonly string _destinationPath;
-    private string _sourceBackupPath;
-    private bool _disposed;
-    
+    private bool _moved;
+
+    // tempPath is unused and kept for source compatibility with callers of the public constructor.
     public MoveDirectoryTransaction(string sourcePath, string destinationPath, string tempPath) : base(sourcePath, destinationPath)
     {
         _sourcePath = sourcePath;
         _destinationPath = destinationPath;
-        _tempPath = tempPath;
     }
-    
+
     public override void Commit()
     {
-        var sourceBackupFile = Path.Combine(_tempPath, Guid.NewGuid().ToString());
-        Directory.CreateDirectory(sourceBackupFile);
-        DirectoryHelper.CopyDirectory(_sourcePath, sourceBackupFile);
-        _sourceBackupPath = sourceBackupFile;
-        
         base.Commit();
+        _moved = true;
     }
 
     public void RollBack()
     {
-        if (Directory.Exists(_destinationPath))
+        if (!_moved || !Directory.Exists(_destinationPath))
         {
-            Directory.Delete(_destinationPath, true);
+            return;
         }
 
-        // Copied, not moved: the backup lives under the system temp path, and Directory.Move fails
-        // across volumes (tmpfs on Linux, another drive on Windows), which left the source gone.
-        if (_sourceBackupPath != null && !Directory.Exists(_sourcePath))
+        // Something recreated the source after the move. Merging or deleting either tree would
+        // destroy data this transaction does not own, so both are kept and the failure is reported.
+        if (Directory.Exists(_sourcePath))
         {
-            DirectoryHelper.CopyDirectory(_sourceBackupPath, _sourcePath);
+            throw new FileOperationException(
+                $"Cannot move {_destinationPath} back to {_sourcePath}: the source path exists again.");
         }
-    }
 
-    ~MoveDirectoryTransaction()
-    {
-        ClearBackups();
-    }
-
-    public void Dispose()
-    {
-        ClearBackups();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ClearBackups()
-    {
-        if (_disposed) return;
-        
-        _disposed = true;
-            
-        var backupFolders = new List<string>() { _sourceBackupPath };
-        ClearBackupHelper.Execute(backupFolders);
+        Directory.Move(_destinationPath, _sourcePath);
     }
 }

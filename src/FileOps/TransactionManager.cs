@@ -49,7 +49,10 @@ public class TransactionManager : ITransactionManager
             throw;
         }
 
-        enlistment.Push(fileOpsTransaction);
+        if (!enlistment.TryPush(fileOpsTransaction))
+        {
+            UndoLateOperation(fileOpsTransaction);
+        }
     }
 
     public async Task AddTransactionAsync(IAsyncFileOpsTransaction asyncFileOpsTransaction)
@@ -66,7 +69,35 @@ public class TransactionManager : ITransactionManager
             throw;
         }
 
-        enlistment.Push(asyncFileOpsTransaction);
+        if (!enlistment.TryPush(asyncFileOpsTransaction))
+        {
+            UndoLateOperation(asyncFileOpsTransaction);
+        }
+    }
+
+    // A transaction that times out is rolled back on a timer thread, possibly while an operation of
+    // it is still running on the caller's thread. That rollback cannot see the running operation, so
+    // the operation undoes itself here once it has finished; otherwise the disk would keep a change
+    // of a transaction that no longer exists.
+    private static void UndoLateOperation(IFileOpsTransaction operation)
+    {
+        try
+        {
+            operation.RollBack();
+        }
+        catch (Exception e)
+        {
+            throw new TransactionException(
+                "The transaction ended while a file operation was running, and the operation could not be undone.",
+                e);
+        }
+        finally
+        {
+            DisposeTransaction(operation);
+        }
+
+        throw new TransactionAbortedException(
+            "The transaction ended while a file operation was running. The operation was undone.");
     }
 
     private static Transaction CurrentTransaction()
@@ -111,6 +142,7 @@ public class TransactionManager : ITransactionManager
         private readonly TransactionManager _owner;
         private readonly Transaction _transaction;
         private readonly Stack<IFileOpsTransaction> _operations = new();
+        private bool _rolledBack;
 
         public TransactionEnlistment(TransactionManager owner, Transaction transaction)
         {
@@ -118,11 +150,19 @@ public class TransactionManager : ITransactionManager
             _transaction = transaction;
         }
 
-        public void Push(IFileOpsTransaction operation)
+        // False once the transaction has been rolled back: the operation is then not part of any
+        // rollback any more and the caller has to undo it.
+        public bool TryPush(IFileOpsTransaction operation)
         {
             lock (_operations)
             {
+                if (_rolledBack)
+                {
+                    return false;
+                }
+
                 _operations.Push(operation);
+                return true;
             }
         }
 
@@ -156,6 +196,12 @@ public class TransactionManager : ITransactionManager
         public void Rollback(Enlistment enlistment)
         {
             _owner.Forget(_transaction);
+
+            lock (_operations)
+            {
+                _rolledBack = true;
+            }
+
             List<Exception> failures = null;
 
             try
